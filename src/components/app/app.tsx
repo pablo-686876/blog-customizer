@@ -11,7 +11,7 @@ import {
 import styles from './app.module.scss';
 
 export const App = () => {
-	const article_style = (style: ArticleStateType): CSSProperties => {
+	const articleStyle = (style: ArticleStateType): CSSProperties => {
 		return {
 			'--font-family': style.fontFamilyOption.value,
 			'--font-size': style.fontSizeOption.value,
@@ -25,8 +25,11 @@ export const App = () => {
 		useState<ArticleStateType>(defaultArticleState);
 
 	return (
-		<main className={clsx(styles.main)} style={article_style(articleState)}>
-			<ArticleParamsForm onClick={setArticleState} />
+		<main className={clsx(styles.main)} style={articleStyle(articleState)}>
+			<ArticleParamsForm
+				onApply={setArticleState}
+				initialState={articleState}
+			/>
 			<Article />
 		</main>
 	);

@@ -18,43 +18,63 @@ import { Separator } from 'src/ui/separator';
 import { RadioGroup } from 'src/ui/radio-group';
 
 type TArticleParamsFormProps = {
-	onClick: (state: ArticleStateType) => void;
+	onApply: (state: ArticleStateType) => void;
+	initialState: ArticleStateType;
 };
 
-export const ArticleParamsForm = ({ onClick }: TArticleParamsFormProps) => {
-	const [open, setOpen] = useState(false);
-	const [selectedFont, setSelectedFont] = useState(fontFamilyOptions[0]);
-	const [selectedColor, setSelectedColor] = useState(fontColors[0]);
-	const [selectedBgColor, setSelectedBgColor] = useState(backgroundColors[0]);
-	const [selectedWidth, setSelectedWidth] = useState(contentWidthArr[0]);
-	const [selectedFontSize, setSelectedFontSize] = useState(fontSizeOptions[0]);
+export const ArticleParamsForm = ({
+	onApply,
+	initialState,
+}: TArticleParamsFormProps) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const [selectedFont, setSelectedFont] = useState(
+		initialState.fontFamilyOption
+	);
+	const [selectedColor, setSelectedColor] = useState(initialState.fontColor);
+	const [selectedBgColor, setSelectedBgColor] = useState(
+		initialState.backgroundColor
+	);
+	const [selectedWidth, setSelectedWidth] = useState(initialState.contentWidth);
+	const [selectedFontSize, setSelectedFontSize] = useState(
+		initialState.fontSizeOption
+	);
 
 	const toggle = () => {
-		setOpen(!open);
+		setIsOpen(!isOpen);
 	};
 
 	const articleRef = useRef<HTMLElement>(null);
 
 	useEffect(() => {
+		if (!isOpen) {
+			return;
+		}
 		const handleClickOutside = (e: MouseEvent) => {
 			if (
 				articleRef.current &&
 				!articleRef.current.contains(e.target as Node)
 			) {
-				setOpen(false);
+				setIsOpen(false);
 			}
 		};
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
+		const handleKeyDownOutside = (e: KeyboardEvent) => {
+			if (e.key === 'Enter' || e.key === 'Escape') {
+				setIsOpen(false);
+			}
 		};
-	}, []);
+		window.addEventListener('mousedown', handleClickOutside);
+		window.addEventListener('keydown', handleKeyDownOutside);
+		return () => {
+			window.removeEventListener('mousedown', handleClickOutside);
+			window.removeEventListener('keydown', handleKeyDownOutside);
+		};
+	}, [isOpen]);
 
 	return (
 		<section ref={articleRef}>
-			<ArrowButton isOpen={open} onClick={toggle} />
+			<ArrowButton isOpen={isOpen} onClick={toggle} />
 			<aside
-				className={clsx(styles.container, { [styles.container_open]: open })}>
+				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
 				<form
 					className={styles.form}
 					onSubmit={(e: React.FormEvent) => {
@@ -108,7 +128,7 @@ export const ArticleParamsForm = ({ onClick }: TArticleParamsFormProps) => {
 								setSelectedColor(defaultArticleState.fontColor);
 								setSelectedBgColor(defaultArticleState.backgroundColor);
 								setSelectedWidth(defaultArticleState.contentWidth);
-								onClick(defaultArticleState);
+								onApply(defaultArticleState);
 							}}
 						/>
 						<Button
@@ -116,7 +136,7 @@ export const ArticleParamsForm = ({ onClick }: TArticleParamsFormProps) => {
 							htmlType='submit'
 							type='apply'
 							onClick={() => {
-								onClick({
+								onApply({
 									fontFamilyOption: selectedFont,
 									fontSizeOption: selectedFontSize,
 									fontColor: selectedColor,
